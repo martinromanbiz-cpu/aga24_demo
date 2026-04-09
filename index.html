@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGA24 – Nákupní galerie | AI Asistent DEMO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #E8192C;
+    --red-dark: #c0121f;
+    --dark: #111;
+    --grey: #f4f4f2;
+    --border: #e5e5e5;
+    --text: #222;
+    --muted: #888;
+    --white: #fff;
+    --chat-bg: #f9f9f8;
+    --user-bubble: #E8192C;
+    --bot-bubble: #fff;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.15);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--grey);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--red);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--red); }
+
+  nav { display: flex; gap: 1.5rem; }
+  nav a {
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  nav a:hover { color: var(--dark); }
+
+  .header-actions { display: flex; gap: 1rem; align-items: center; }
+
+  .demo-badge {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--dark);
+    color: white;
+    padding: 5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 60% 50%, rgba(232,25,44,0.15) 0%, transparent 70%);
+  }
+
+  .hero-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(232,25,44,0.15);
+    border: 1px solid rgba(232,25,44,0.3);
+    color: #ff6b7a;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.5px;
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--red);
+  }
+
+  .hero p {
+    font-size: 1.05rem;
+    color: #aaa;
+    max-width: 520px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.6;
+    position: relative;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    position: relative;
+  }
+
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: white;
+  }
+  .stat-label { font-size: 0.8rem; color: #777; margin-top: 2px; }
+
+  /* MAIN LAYOUT */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  /* PRODUCT GRID */
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+    color: var(--dark);
+  }
+
+  .categories {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .category-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .category-card:hover {
+    border-color: var(--red);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  .category-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .category-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .products {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .product-card {
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all .2s;
+    cursor: pointer;
+  }
+
+  .product-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  .product-img {
+    height: 140px;
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    position: relative;
+  }
+
+  .product-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--red);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .product-info { padding: 1rem; }
+
+  .product-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+  }
+
+  .product-price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--red);
+  }
+
+  .product-old-price {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-left: 6px;
+  }
+
+  /* CHATBOT PANEL */
+  .chat-panel {
+    position: sticky;
+    top: 80px;
+  }
+
+  .chat-header-box {
+    background: var(--dark);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .chat-header-info { flex: 1; }
+  .chat-header-info h3 { font-size: 0.95rem; font-weight: 600; }
+  .chat-header-info p { font-size: 0.75rem; color: #aaa; margin-top: 1px; }
+
+  .online-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .chat-window {
+    background: var(--chat-bg);
+    height: 420px;
+    overflow-y: auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    scroll-behavior: smooth;
+  }
+
+  .chat-window::-webkit-scrollbar { width: 4px; }
+  .chat-window::-webkit-scrollbar-track { background: transparent; }
+  .chat-window::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    gap: 8px;
+    max-width: 88%;
+    animation: msg-in .3s ease;
+  }
+
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+
+  .msg.bot .msg-avatar { background: var(--red); color: white; }
+  .msg.user .msg-avatar { background: #333; color: white; }
+
+  .msg-bubble {
+    padding: 0.7rem 1rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    max-width: 100%;
+  }
+
+  .msg.bot .msg-bubble {
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--user-bubble);
+    color: white;
+    border-top-right-radius: 4px;
+  }
+
+  .typing {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    border-top-left-radius: 4px;
+    width: fit-content;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .typing-dot {
+    width: 6px; height: 6px;
+    background: #bbb;
+    border-radius: 50%;
+    animation: typing-bounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: .2s; }
+  .typing-dot:nth-child(3) { animation-delay: .4s; }
+
+  @keyframes typing-bounce {
+    0%, 80%, 100% { transform: translateY(0); background: #ccc; }
+    40% { transform: translateY(-5px); background: var(--red); }
+  }
+
+  /* QUICK REPLIES */
+  .quick-replies {
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: var(--white);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .qr-btn {
+    background: var(--grey);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .qr-btn:hover {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+  }
+
+  /* INPUT */
+  .chat-input-area {
+    background: var(--white);
+    padding: 1rem 1.25rem;
+    border-radius: 0 0 16px 16px;
+    border: 1px solid var(--border);
+    border-top: none;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.875rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+    background: var(--grey);
+  }
+
+  .chat-input:focus { border-color: var(--red); background: var(--white); }
+
+  .send-btn {
+    width: 38px;
+    height: 38px;
+    background: var(--red);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover { background: var(--red-dark); transform: scale(1.05); }
+  .send-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+  .send-btn svg { fill: white; width: 16px; height: 16px; }
+
+  /* INFO STRIP */
+  .info-strip {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .info-chip {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .info-chip-icon { font-size: 1rem; }
+  .info-chip-text { color: var(--muted); line-height: 1.3; }
+  .info-chip-text strong { color: var(--dark); display: block; font-size: 0.82rem; }
+
+  /* FOOTER */
+  footer {
+    background: var(--dark);
+    color: #555;
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.8rem;
+    margin-top: 3rem;
+  }
+
+  footer a { color: var(--red); text-decoration: none; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .chat-panel { position: static; }
+    .categories { grid-template-columns: repeat(3, 1fr); }
+    nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo">
+    <div class="logo-icon">A</div>
+    <span class="logo-text">aga<span>24</span></span>
+  </a>
+  <nav>
+    <a href="#">Trampolíny</a>
+    <a href="#">Zahrada</a>
+    <a href="#">Nábytek</a>
+    <a href="#">Sport</a>
+    <a href="#">Elektronika</a>
+  </nav>
+  <div class="header-actions">
+    <span class="demo-badge">🤖 AI Demo</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-label">
+    <span>⚡</span> Nízké ceny každý den
+  </div>
+  <h1>Nakupujte chytře<br>s <em>AI asistentem</em></h1>
+  <p>Máte otázku k objednávce, dopravě nebo reklamaci? Náš AI asistent odpoví okamžitě — 24 hodin denně, 7 dní v týdnu.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">300K+</div>
+      <div class="stat-label">Spokojených zákazníků</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24/7</div>
+      <div class="stat-label">Podpora bez přestávky</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1607</div>
+      <div class="stat-label">Produktů skladem</div>
+    </div>
+  </div>
+</section>
+
+<div class="main">
+
+  <!-- LEFT: Products -->
+  <div class="left-col">
+    <div class="section-label">Kategorie</div>
+    <h2 class="section-title">Co hledáte?</h2>
+
+    <div class="categories">
+      <a class="category-card" href="#">
+        <div class="category-icon">🤸</div>
+        <div class="category-name">Trampolíny</div>
+      </a>
+      <a class="category-card" href="#">
+        <div class="category-icon">🌿</div>
+        <div class="category-name">Zahrada</div>
+      </a>
+      <a class="category-card" href="#">
+        <div class="category-icon">🪑</div>
+        <div class="category-name">Nábytek</div>
+      </a>
+      <a class="category-card" href="#">
+        <div class="category-icon">🎾</div>
+        <div class="category-name">Sport</div>
+      </a>
+      <a class="category-card" href="#">
+        <div class="category-icon">🐾</div>
+        <div class="category-name">Chovatelské</div>
+      </a>
+      <a class="category-card" href="#">
+        <div class="category-icon">🧸</div>
+        <div class="category-name">Hračky</div>
+      </a>
+    </div>
+
+    <div class="section-label">Akční nabídka</div>
+    <h2 class="section-title">Úlovek dne</h2>
+
+    <div class="products">
+      <div class="product-card">
+        <div class="product-img">
+          🤸
+          <span class="product-badge">-35%</span>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Trampolína 366cm + síť + žebřík</div>
+          <div><span class="product-price">3 490 Kč</span><span class="product-old-price">5 390 Kč</span></div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">🪑</div>
+        <div class="product-info">
+          <div class="product-name">Zahradní židle s polštářem, 2 ks</div>
+          <div><span class="product-price">1 290 Kč</span><span class="product-old-price">1 890 Kč</span></div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">
+          🐶
+          <span class="product-badge">Novinka</span>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Automatický dávkovač krmiva pro psy</div>
+          <div><span class="product-price">890 Kč</span></div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">⛺</div>
+        <div class="product-info">
+          <div class="product-name">Rodinný stan pro 4 osoby + karimatky</div>
+          <div><span class="product-price">2 190 Kč</span><span class="product-old-price">2 990 Kč</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Chatbot -->
+  <div class="chat-panel">
+    <div class="chat-header-box">
+      <div class="chat-avatar">🤖</div>
+      <div class="chat-header-info">
+        <h3>AGA24 Asistent</h3>
+        <p>Zákaznická podpora · AI powered</p>
+      </div>
+      <div class="online-dot"></div>
+    </div>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="msg bot">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">
+          Dobrý den! Jsem zákaznický asistent AGA24. Mohu vám pomoci s informacemi o objednávce, dopravě, reklamacích nebo produktech. Jsem k dispozici 24 hodin denně, 7 dní v týdnu. S čím vám dnes mohu pomoci?
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-replies" id="quickReplies">
+      <button class="qr-btn" onclick="sendQuick('Kdy mi přijde objednávka?')">📦 Kdy dorazí zásilka?</button>
+      <button class="qr-btn" onclick="sendQuick('Kolik stojí doprava?')">🚚 Cena dopravy</button>
+      <button class="qr-btn" onclick="sendQuick('Jak mohu vrátit zboží?')">↩️ Vrácení zboží</button>
+      <button class="qr-btn" onclick="sendQuick('Jak podat reklamaci?')">🔧 Reklamace</button>
+      <button class="qr-btn" onclick="sendQuick('Kde sídlíte a jaký máte kontakt?')">📞 Kontakt</button>
+    </div>
+
+    <div class="chat-input-area">
+      <input
+        type="text"
+        class="chat-input"
+        id="chatInput"
+        placeholder="Napište dotaz..."
+        onkeydown="if(event.key==='Enter') sendMessage()"
+        autocomplete="off"
+      >
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+
+    <div class="info-strip">
+      <div class="info-chip">
+        <span class="info-chip-icon">⏰</span>
+        <div class="info-chip-text">
+          <strong>Telefon</strong>
+          Po–Pá 9:00–15:30
+        </div>
+      </div>
+      <div class="info-chip">
+        <span class="info-chip-icon">🤖</span>
+        <div class="info-chip-text">
+          <strong>AI chat</strong>
+          Nonstop 24/7
+        </div>
+      </div>
+      <div class="info-chip">
+        <span class="info-chip-icon">📍</span>
+        <div class="info-chip-text">
+          <strong>Sídlo</strong>
+          Český Těšín
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2026 AGA24, s.r.o. · Nová Tovární 1940, 737 01 Český Těšín · <a href="mailto:info@aga24.cz">info@aga24.cz</a></p>
+  <p style="margin-top:6px; color:#333;">AI Asistent postaven na <strong style="color:#E8192C">Orion AI</strong> · <a href="https://orion-ai.cz">orion-ai.cz</a></p>
+</footer>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────────────────────
+  const WEBHOOK_URL = 'https://martinromanai.app.n8n.cloud/webhook/7b4f7591-aecb-40ec-a1fc-19176efa830f/chat';
+  const SESSION_ID  = 'demo-' + Math.random().toString(36).slice(2, 9);
+
+  // ─── STATE ────────────────────────────────────────────────────────────────
+  let busy = false;
+
+  // ─── DOM ──────────────────────────────────────────────────────────────────
+  const win     = document.getElementById('chatWindow');
+  const input   = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  // ─── SEND ─────────────────────────────────────────────────────────────────
+  function sendQuick(text) { input.value = text; sendMessage(); }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text || busy) return;
+
+    busy = true;
+    sendBtn.disabled = true;
+    input.value = '';
+
+    appendMsg('user', text);
+
+    const typingEl = appendTyping();
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatInput: text, sessionId: SESSION_ID })
+      });
+
+      const data = await res.json();
+      const reply = data.output || data.text || data.message
+        || (Array.isArray(data) && (data[0]?.output || data[0]?.text))
+        || 'Omlouvám se, momentálně nemohu odpovědět. Zkuste to prosím za chvíli.';
+
+      typingEl.remove();
+      appendMsg('bot', reply);
+    } catch (e) {
+      typingEl.remove();
+      appendMsg('bot', 'Asistent je momentálně nedostupný. Kontaktujte nás na +420 725 960 369.');
+    }
+
+    busy = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  function appendMsg(role, text) {
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = role === 'bot' ? '🤖' : '👤';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+
+    wrap.appendChild(avatar);
+    wrap.appendChild(bubble);
+    win.appendChild(wrap);
+    win.scrollTop = win.scrollHeight;
+    return wrap;
+  }
+
+  function appendTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg bot';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = '🤖';
+
+    const typing = document.createElement('div');
+    typing.className = 'typing';
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'typing-dot';
+      typing.appendChild(dot);
+    }
+
+    wrap.appendChild(avatar);
+    wrap.appendChild(typing);
+    win.appendChild(wrap);
+    win.scrollTop = win.scrollHeight;
+    return wrap;
+  }
+</script>
+
+</body>
+</html>
